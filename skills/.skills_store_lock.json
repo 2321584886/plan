@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "testing-workflow": {
+      "name": "Testing Workflow",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=testing-workflow",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "e2e-testing-patterns": {
+      "name": "E2E Testing Patterns",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=e2e-testing-patterns",
+      "source": "skillhub",
+      "version": "1.0.0"
+    }
+  }
+}

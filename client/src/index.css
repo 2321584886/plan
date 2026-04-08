@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+    --ui-primary: #2f6df6;
+    --ui-primary-strong: #1f4dcc;
+    --ui-accent: #0ea5a7;
+    --ui-danger: #dc2626;
+    --ui-text: rgba(15, 23, 42, 0.92);
+    --ui-text-secondary: rgba(15, 23, 42, 0.62);
+    --ui-border: #dde3f0;
+    --ui-surface: #ffffff;
+    --ui-surface-soft: #f4f7ff;
+    --ui-page-a: #f7f9ff;
+    --ui-page-b: #eef4ff;
+    --ui-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+    --ui-shadow-md: 0 10px 28px rgba(21, 44, 92, 0.12);
+    --ui-radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    color: var(--ui-text);
+    background:
+        radial-gradient(1200px 500px at 100% -10%, rgba(47, 109, 246, 0.16), transparent 60%),
+        radial-gradient(900px 420px at -5% 0%, rgba(14, 165, 167, 0.1), transparent 55%),
+        linear-gradient(180deg, var(--ui-page-a) 0%, var(--ui-page-b) 100%);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+a {
+    color: inherit;
+}
+
+nav {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    padding: 16px 20px;
+    box-shadow: var(--ui-shadow-sm);
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(221, 227, 240, 0.9);
+    border-radius: var(--ui-radius);
+}
+
+nav a {
+    text-decoration: none;
+    color: var(--ui-primary-strong);
+    font-weight: 600;
+}
+
+main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.page-fade-in {
+    animation: pageFadeIn 420ms ease-out both;
+}
+
+.card-fade-in {
+    animation: cardRiseIn 380ms ease-out both;
+}
+
+.chart-container,
+.form-container {
+    background: linear-gradient(180deg, var(--ui-surface) 0%, #fbfcff 100%);
+    border-radius: var(--ui-radius);
+    border: 1px solid var(--ui-border);
+    box-shadow: var(--ui-shadow-sm);
+}
+
+.chart-container {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.form-container {
+    padding: 28px;
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--ui-text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.holding-item input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: 10px;
+    background: #fff;
+    outline: none;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.holding-item input:focus {
+    border-color: var(--ui-primary);
+    box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.15);
+}
+
+.holding-item {
+    border: 1px solid var(--ui-border);
+    background: var(--ui-surface-soft);
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+:where(button):not(.ant-btn) {
+    padding: 10px 15px;
+    background: linear-gradient(135deg, var(--ui-primary) 0%, var(--ui-primary-strong) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 140ms ease, filter 180ms ease;
+}
+
+:where(button):not(.ant-btn).danger {
+    background: linear-gradient(135deg, var(--ui-danger) 0%, #b91c1c 100%);
+}
+
+:where(button):not(.ant-btn):hover {
+    filter: saturate(1.08);
+}
+
+:where(button):not(.ant-btn):active {
+    transform: translateY(1px) scale(0.99);
+}
+
+.ant-menu-dark .ant-menu-item,
+.ant-menu-dark .ant-menu-submenu-title {
+    width: calc(100% - 16px);
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.page-section-gap {
+    margin-top: 20px;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.fund-total {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--ui-text);
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+}
+
+.top-category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.top-category-card {
+    border: 1px solid var(--ui-border);
+    border-radius: 10px;
+    padding: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+}
+
+.top-category-card h3 {
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--ui-text-secondary);
+}
+
+.top-category-card p {
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.helper-text {
+    margin: 8px 0 14px;
+    color: var(--ui-text-secondary);
+}
+
+.row-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.divider {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid var(--ui-border);
+}
+
+.category-block {
+    border: 1px solid var(--ui-border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.category-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf1f7;
+}
+
+.category-row:last-child {
+    border-bottom: none;
+}
+
+.category-row > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-child-row {
+    padding-left: 28px;
+    background: #f9fbff;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cardRiseIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 0 12px;
+    }
+
+    .form-container {
+        padding: 18px;
+    }
+
+    nav {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+}
