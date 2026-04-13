@@ -8,13 +8,14 @@
  */
 import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { Layout, Menu, Badge, Spin } from 'antd';
+import { Layout, Menu, Badge, Spin, Select } from 'antd';
 import {
   DashboardOutlined,
   FormOutlined,
   AppstoreOutlined,
   FolderOutlined,
   FundOutlined,
+  UserSwitchOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
@@ -27,8 +28,8 @@ import Dashboard from './pages/Dashboard';
 import CategoryDetail from './pages/CategoryDetail';
 import DailyEntry from './pages/DailyEntry';
 import DictCategories from './pages/DictCategories';
-import SubCategoryDetail from './pages/SubCategoryDetail';
 import FinanceOverview from './pages/FinanceOverview';
+import FinanceSubRoute from './pages/FinanceSubRoute';
 
 const { Sider, Content } = Layout;
 
@@ -82,7 +83,7 @@ const logoTextStyle = {
  * 内容区域背景 — 柔和浅色
  */
 const contentStyle = {
-  padding: layout.contentPadding,
+  padding: `clamp(10px, 1.2vw, ${layout.contentPadding}px) clamp(12px, 1.8vw, 20px)`,
   overflow: 'auto',
   background: `
     radial-gradient(1200px 500px at 100% -10%, rgba(79, 110, 247, 0.12), transparent 60%),
@@ -135,6 +136,17 @@ function App() {
   const [loading, setLoading] = useState(true);
   /** 侧边栏折叠状态 - true 为收起，false 为展开 */
   const [collapsed, setCollapsed] = useState(false);
+  /** 可切换用户列表 */
+  const [users, setUsers] = useState([]);
+  /** 当前用户ID（持久化到 localStorage） */
+  const [activeUserId, setActiveUserId] = useState(localStorage.getItem('activeUserId') || '1');
+
+  const activeUser = users.find((u) => String(u.id) === String(activeUserId));
+
+  const formatMoney = (value) => {
+    const num = Number(value || 0);
+    return `¥${num.toLocaleString()}`;
+  };
 
   /** 子菜单展开状态 - 受控管理，支持用户手动展开/收起 */
   const [menuOpenKeys, setMenuOpenKeys] = useState(
@@ -152,6 +164,29 @@ function App() {
       setMenuOpenKeys(prev => prev.includes('sub-finance') ? prev : [...prev, 'sub-finance']);
     }
   }, [location.pathname]);
+
+  /** 加载用户列表，供侧栏切换 */
+  useEffect(() => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : [];
+        setUsers(list);
+
+        if (list.length === 0) return;
+
+        const hasActive = list.some(u => String(u.id) === String(activeUserId));
+        if (!hasActive) {
+          const fallbackId = String(list[0].id);
+          localStorage.setItem('activeUserId', fallbackId);
+          setActiveUserId(fallbackId);
+          window.location.reload();
+        }
+      })
+      .catch(err => {
+        console.error('加载用户列表失败:', err);
+      });
+  }, []);
 
   /**
    * 加载分类树数据
@@ -196,6 +231,15 @@ function App() {
    */
   const toggleCollapsed = () => {
     setCollapsed(prev => !prev);
+  };
+
+  const handleUserChange = (userId) => {
+    const nextUserId = String(userId);
+    if (nextUserId === String(activeUserId)) return;
+
+    localStorage.setItem('activeUserId', nextUserId);
+    setActiveUserId(nextUserId);
+    window.location.reload();
   };
 
   /**
@@ -308,8 +352,34 @@ function App() {
           {!collapsed && <span style={logoTextStyle}>投资追踪</span>}
         </div>
 
+        {!collapsed && (
+          <div className="user-switcher-panel">
+            <div className="user-switcher-meta">
+              <span className="user-switcher-title">当前用户</span>
+              <span className="user-switcher-amount">{formatMoney(activeUser?.total_amount || 0)}</span>
+            </div>
+            <Select
+              value={activeUserId}
+              onChange={handleUserChange}
+              className="user-switcher-select"
+              style={{ width: '100%' }}
+              size="middle"
+              suffixIcon={<UserSwitchOutlined style={{ color: 'rgba(255, 255, 255, 0.75)' }} />}
+              options={users.map(user => ({
+                value: String(user.id),
+                label: (
+                  <div className="user-switcher-option">
+                    <span className="user-switcher-name">{user.username}</span>
+                    <span className="user-switcher-id">ID:{user.id}</span>
+                  </div>
+                ),
+              }))}
+            />
+          </div>
+        )}
+
         {/* 导航菜单 - 深色主题，背景透明以透出渐变 */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 48 }}>
+        <div style={{ flex: 1, overflowY: 'auto', paddingTop: spacing.sm, paddingBottom: 48 }}>
           <Menu
             theme="dark"
             mode="inline"
@@ -343,7 +413,7 @@ function App() {
             <Route path="/dict-categories" element={<DictCategories />} />
             <Route path="/category/:id" element={<CategoryDetail />} />
             <Route path="/finance-overview" element={<FinanceOverview />} />
-            <Route path="/finance/:subId" element={<SubCategoryDetail />} />
+            <Route path="/finance/:subId" element={<FinanceSubRoute />} />
           </Routes>
         </Content>
       </Layout>

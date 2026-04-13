@@ -51,7 +51,7 @@ const PageContainer = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: spacing.xl,
+          marginBottom: spacing.lg,
         }}
       >
         {/* 左侧标题 */}

@@ -64,6 +64,7 @@ disable-model-invocation: false
 - 其他与领域相关 skill（按任务语义匹配）
 4. 若存在多个 skill，按“设计→实现→测试→验收”的阶段顺序组合使用。
 5. 若未找到匹配 skill，明确说明并采用通用工程最佳实践替代。
+6. 自行查找需要的skill 并下载
 
 ## 工具使用偏好
 - 优先：`search` + `read` 建立上下文，`todo` 管理阶段进度。

@@ -1,0 +1,263 @@
+.paper-gold-page {
+  --gold-bg-top: #fff9f2;
+  --gold-bg-bottom: #fff3e3;
+  --gold-card: #ffffff;
+  --gold-primary: #e29b54;
+  --gold-primary-strong: #c7772b;
+  --gold-border: #f2d8b9;
+  --gold-text-subtle: rgba(61, 42, 21, 0.66);
+}
+
+.paper-gold-hero {
+  border-radius: 18px !important;
+  background:
+    radial-gradient(1200px 540px at 105% -25%, rgba(211, 136, 64, 0.23), transparent 58%),
+    radial-gradient(760px 320px at -5% 0%, rgba(255, 235, 205, 0.86), transparent 70%),
+    linear-gradient(180deg, var(--gold-bg-top) 0%, var(--gold-bg-bottom) 100%);
+  box-shadow: 0 12px 26px rgba(199, 119, 43, 0.17), 0 2px 8px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(227, 166, 106, 0.25);
+}
+
+.paper-gold-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.paper-gold-title {
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #3d2a15;
+  letter-spacing: -0.02em;
+}
+
+.paper-gold-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gold-text-subtle);
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.paper-gold-risk {
+  border-radius: 12px;
+  border: 1px solid rgba(227, 166, 106, 0.35) !important;
+  background: rgba(254, 248, 239, 0.96) !important;
+  margin-bottom: 14px;
+}
+
+.paper-gold-hold-card,
+.paper-gold-price-card {
+  border-radius: 14px !important;
+  border: 1px solid var(--gold-border);
+  box-shadow: 0 8px 18px rgba(199, 119, 43, 0.1);
+}
+
+.paper-gold-hold-title {
+  color: var(--gold-text-subtle);
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.paper-gold-hold-grams {
+  font-size: clamp(36px, 3.6vw, 48px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #20150a;
+}
+
+.paper-gold-hold-meta {
+  margin-top: 4px;
+  color: var(--gold-text-subtle);
+  font-size: 15px;
+}
+
+.paper-gold-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.paper-gold-kpi-label {
+  color: var(--gold-text-subtle);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.paper-gold-kpi-value {
+  color: #20150a;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.paper-gold-quote-side {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.paper-gold-live-grid {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(227, 166, 106, 0.45);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.paper-gold-live-item {
+  border-radius: 10px;
+  border: 1px solid rgba(227, 166, 106, 0.35);
+  background: linear-gradient(180deg, rgba(255, 249, 239, 0.96) 0%, rgba(255, 240, 218, 0.88) 100%);
+  padding: 10px 12px;
+}
+
+.paper-gold-live-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.paper-gold-price-trend {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(227, 166, 106, 0.45);
+}
+
+.paper-gold-price-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #5b3616;
+  font-weight: 600;
+}
+
+.paper-gold-price-trend-stats {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: rgba(91, 54, 22, 0.88);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.paper-gold-live-hint {
+  margin-top: 10px;
+  color: var(--gold-text-subtle);
+  font-size: 12px;
+}
+
+.paper-gold-paste-zone {
+  border: 1px dashed rgba(199, 119, 43, 0.55);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 249, 239, 0.9) 0%, rgba(255, 242, 223, 0.7) 100%);
+  padding: 12px;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.paper-gold-paste-zone:focus {
+  box-shadow: 0 0 0 3px rgba(226, 155, 84, 0.2);
+}
+
+.paper-gold-paste-title {
+  font-weight: 700;
+  color: #7a4a1a;
+}
+
+.paper-gold-paste-subtitle {
+  margin-top: 4px;
+  color: var(--gold-text-subtle);
+  font-size: 12px;
+}
+
+.paper-gold-ocr-progress {
+  margin-top: 12px;
+}
+
+.paper-gold-preview-wrap {
+  margin-top: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(227, 166, 106, 0.35);
+  max-height: 240px;
+}
+
+.paper-gold-preview {
+  width: 100%;
+}
+
+.paper-gold-actions {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.paper-gold-btn {
+  border-radius: 999px !important;
+  height: 46px !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  transition: transform 180ms ease, filter 200ms ease;
+}
+
+.paper-gold-btn:hover {
+  transform: translateY(-1px);
+}
+
+.paper-gold-btn.sell {
+  border-color: rgba(199, 119, 43, 0.36) !important;
+  color: #ad6116 !important;
+  background: linear-gradient(180deg, #fff4e4 0%, #ffe8ce 100%) !important;
+}
+
+.paper-gold-btn.buy {
+  border: none !important;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-primary-strong) 100%) !important;
+}
+
+@media (max-width: 960px) {
+  .paper-gold-hero-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .paper-gold-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-gold-kpi-value {
+    font-size: 20px;
+  }
+
+  .paper-gold-live-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-gold-live-value {
+    font-size: 22px;
+  }
+
+  .paper-gold-price-trend-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .paper-gold-price-trend-stats {
+    gap: 8px;
+  }
+}

@@ -150,3 +150,59 @@ INSERT OR IGNORE INTO dict_transaction_types (id, name, type, sort_order) VALUES
 INSERT OR IGNORE INTO dict_transaction_types (id, name, type, sort_order) VALUES (6, '日常消费', 'expense', 1);
 INSERT OR IGNORE INTO dict_transaction_types (id, name, type, sort_order) VALUES (7, '转出', 'expense', 2);
 INSERT OR IGNORE INTO dict_transaction_types (id, name, type, sort_order) VALUES (8, '其他支出', 'expense', 3);
+
+-- =============================================
+-- 纸黄金扩展数据结构（浙商银行）
+-- =============================================
+
+-- 行情快照：记录浙商黄金实时价格与涨跌信息
+CREATE TABLE IF NOT EXISTS paper_gold_market_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    quote_time DATETIME NOT NULL,
+    realtime_price REAL NOT NULL,
+    price_change REAL DEFAULT 0,
+    change_rate REAL DEFAULT 0,
+    source TEXT DEFAULT 'manual',
+    raw_text TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES fund_accounts(id) ON DELETE CASCADE
+);
+
+-- 持仓明细：当前仍在持有的纸黄金分笔记录
+CREATE TABLE IF NOT EXISTS paper_gold_positions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    order_type TEXT NOT NULL DEFAULT '实时买入',
+    trade_time DATETIME NOT NULL,
+    grams REAL NOT NULL,
+    buy_price REAL NOT NULL,
+    buy_value REAL NOT NULL,
+    estimated_sell_fee REAL DEFAULT 0,
+    source TEXT DEFAULT 'manual',
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES fund_accounts(id) ON DELETE CASCADE
+);
+
+-- 清仓记录：历史卖出闭环记录
+CREATE TABLE IF NOT EXISTS paper_gold_closed_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    closed_time DATETIME NOT NULL,
+    grams REAL NOT NULL,
+    buy_price REAL NOT NULL,
+    sell_price REAL NOT NULL,
+    sell_fee REAL DEFAULT 0,
+    pnl REAL NOT NULL,
+    source TEXT DEFAULT 'manual',
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES fund_accounts(id) ON DELETE CASCADE
+);

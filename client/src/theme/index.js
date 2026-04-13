@@ -176,6 +176,6 @@ export const layout = {
   siderCollapsedWidth: 64,
   /** 页面内容最大宽度 */
   contentMaxWidth: 1400,
-  /** 页面内边距 */
-  contentPadding: 24,
+  /** 页面内边距（收紧默认值，避免内容区留白过大） */
+  contentPadding: 16,
 };

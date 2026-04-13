@@ -1,11 +1,13 @@
 /**
  * 分类字典管理页面 - DictCategories
  *
- * 以树形结构展示和管理分类字典（一级分类 → 子分类）。
- * 支持新增一级分类、添加子分类、编辑和删除操作。
- * 操作按钮在 hover 节点行时淡入显示，保持界面简洁。
+ * 页面职责：
+ * 1. 维护资产分类树（一级/二级分类）
+ * 2. 维护交易分类字典（收入/支出）
+ *
+ * 说明：本次重构聚焦前端视觉和交互层，不改变已有后端接口与业务行为。
  */
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Card,
   Tree,
@@ -19,92 +21,98 @@ import {
   Space,
   Tabs,
   Popconfirm,
-  Tooltip
+  Tooltip,
+  Row,
+  Col,
+  Tag,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ApartmentOutlined,
+  NodeIndexOutlined,
+  TagsOutlined,
+} from '@ant-design/icons';
 import PageContainer from '../components/PageContainer';
 import { colors, spacing, shadows, typography, transitions, borderRadius } from '../theme';
 
-/** 树节点行样式 - 正常状态（透明背景） */
-const treeNodeRowStyle = {
+const rowBaseStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   width: '100%',
-  minHeight: 44,
-  padding: `0 ${spacing.sm}px`,
+  minHeight: 46,
+  padding: `${spacing.xs}px ${spacing.sm}px`,
   borderRadius: borderRadius.sm,
-  transition: transitions.base,
+  border: '1px solid transparent',
+  transition: transitions.fast,
 };
 
-/** 操作按钮组样式 - 默认隐藏，hover 时显示 */
 const actionGroupStyle = {
   opacity: 0,
+  transform: 'translateX(6px)',
   transition: transitions.fast,
   marginLeft: spacing.xl,
   flexShrink: 0,
 };
 
-/** 操作按钮组 hover 时显示的样式 */
 const actionGroupVisibleStyle = {
   ...actionGroupStyle,
   opacity: 1,
+  transform: 'translateX(0)',
 };
 
 export default function DictCategories() {
-  /** 树形数据（已适配 Tree 组件格式） */
   const [treeData, setTreeData] = useState([]);
-  /** 数据加载状态 */
+  const [categorySource, setCategorySource] = useState([]);
   const [loading, setLoading] = useState(false);
-  /** 弹窗是否可见 */
+
   const [modalVisible, setModalVisible] = useState(false);
-  /** 弹窗类型：'add' 新增一级 / 'edit' 编辑 / 'addChild' 添加子分类 */
   const [modalType, setModalType] = useState('add');
-  /** 当前操作的节点数据 */
   const [currentNode, setCurrentNode] = useState(null);
-  /** 表单实例 */
   const [form] = Form.useForm();
-  /** 当前 hover 的节点 key，用于控制操作按钮显示 */
   const [hoveredNodeKey, setHoveredNodeKey] = useState(null);
 
-  /* ========== 交易分类管理 状态 ========== */
-  /** 交易分类列表 */
   const [transactionTypes, setTransactionTypes] = useState([]);
-  /** 交易分类加载状态 */
   const [txTypeLoading, setTxTypeLoading] = useState(false);
-  /** 交易分类弹窗是否可见 */
   const [txTypeModalVisible, setTxTypeModalVisible] = useState(false);
-  /** 交易分类弹窗模式：'add' 新增 / 'edit' 编辑 */
   const [txTypeModalMode, setTxTypeModalMode] = useState('add');
-  /** 当前编辑的交易分类 */
   const [editingTxType, setEditingTxType] = useState(null);
-  /** 交易分类表单实例 */
   const [txTypeForm] = Form.useForm();
-  /** 当前 hover 的交易分类项 ID */
   const [hoveredTxTypeId, setHoveredTxTypeId] = useState(null);
 
-  /**
-   * 加载分类树数据
-   * 从 API 获取后转换为 Tree 组件所需的 treeData 格式
-   */
+  const categoryStats = useMemo(() => {
+    const rootCount = categorySource.length;
+    const subCount = categorySource.reduce((sum, node) => sum + (node.children?.length || 0), 0);
+    return {
+      rootCount,
+      subCount,
+      txCount: transactionTypes.length,
+    };
+  }, [categorySource, transactionTypes]);
+
   const loadTreeData = async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/dict-categories/tree');
+      if (!res.ok) {
+        throw new Error('分类树接口返回异常');
+      }
       const data = await res.json();
+      const normalized = Array.isArray(data) ? data : [];
+      setCategorySource(normalized);
 
-      /**
-       * 递归转换数据结构，将后端返回的嵌套对象转为 Tree 组件的 treeData 格式
-       * 每个节点的 title 使用 renderTreeNode 自定义渲染
-       */
-      const convertTree = (nodes) => {
-        return nodes.map(node => ({
-          key: String(node.id),
-          title: renderTreeNode(node),
-          children: node.children ? convertTree(node.children) : undefined
-        }));
-      };
-      setTreeData(convertTree(data));
+      const convertTree = (nodes) => nodes.map((node) => ({
+        key: String(node.id),
+        id: node.id,
+        name: node.name,
+        parent_id: node.parent_id,
+        sort_order: node.sort_order,
+        children: node.children ? convertTree(node.children) : undefined,
+      }));
+
+      setTreeData(convertTree(normalized));
     } catch (error) {
       console.error('加载分类树失败:', error);
       message.error('加载分类树失败');
@@ -113,15 +121,15 @@ export default function DictCategories() {
     }
   };
 
-  /**
-   * 加载交易分类数据
-   */
   const loadTransactionTypes = async () => {
     try {
       setTxTypeLoading(true);
       const res = await fetch('/api/transaction-types');
+      if (!res.ok) {
+        throw new Error('交易分类接口返回异常');
+      }
       const data = await res.json();
-      setTransactionTypes(data);
+      setTransactionTypes(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('加载交易分类失败:', error);
       message.error('加载交易分类失败');
@@ -130,103 +138,11 @@ export default function DictCategories() {
     }
   };
 
-  /** 组件挂载时并行加载分类树和交易分类 */
   useEffect(() => {
     loadTreeData();
     loadTransactionTypes();
   }, []);
 
-  /**
-   * 渲染单个树节点
-   * 包含节点名称和操作按钮组（添加子分类、编辑、删除）
-   * 操作按钮通过 CSS opacity 实现 hover 淡入效果
-   *
-   * @param {Object} node - 节点原始数据
-   */
-  const renderTreeNode = (node) => {
-    const isRoot = !node.parent_id;
-    const nodeKey = String(node.id);
-
-    return (
-      <div
-        style={{
-          ...treeNodeRowStyle,
-          background: hoveredNodeKey === nodeKey ? colors.bg.hover : 'transparent',
-        }}
-        onMouseEnter={() => setHoveredNodeKey(nodeKey)}
-        onMouseLeave={() => setHoveredNodeKey(null)}
-      >
-        {/* 节点名称 */}
-        <span style={{
-          ...typography.body,
-          color: colors.text.primary,
-        }}>
-          {node.name}
-        </span>
-
-        {/* 操作按钮组 - hover 时淡入显示，均为图标按钮 + Tooltip */}
-        <Space
-          size={spacing.xs}
-          style={hoveredNodeKey === nodeKey ? actionGroupVisibleStyle : actionGroupStyle}
-        >
-          {/* 一级分类节点才显示"添加子分类"按钮 */}
-          {isRoot && (
-            <Tooltip title="添加子分类">
-              <Button
-                type="text"
-                size="small"
-                icon={<PlusOutlined style={{ color: colors.primary }} />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddChild(node);
-                }}
-              />
-            </Tooltip>
-          )}
-
-          {/* 编辑按钮 */}
-          <Tooltip title="编辑">
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined style={{ color: colors.primary }} />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(node);
-              }}
-            />
-          </Tooltip>
-
-          {/* 删除按钮 - 带二次确认 */}
-          <Popconfirm
-            title="确认删除"
-            description={`确定要删除分类 "${node.name}" 吗？`}
-            onConfirm={(e) => {
-              e.stopPropagation();
-              handleDelete(node.id);
-            }}
-            okText="确认"
-            cancelText="取消"
-          >
-            <Tooltip title="删除">
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
-      </div>
-    );
-  };
-
-  /**
-   * 打开新增一级分类弹窗
-   * 清空表单并设置弹窗类型为 'add'
-   */
   const handleAddRoot = () => {
     setModalType('add');
     setCurrentNode(null);
@@ -234,10 +150,6 @@ export default function DictCategories() {
     setModalVisible(true);
   };
 
-  /**
-   * 打开添加子分类弹窗
-   * @param {Object} node - 父节点数据
-   */
   const handleAddChild = (node) => {
     setModalType('addChild');
     setCurrentNode(node);
@@ -245,29 +157,20 @@ export default function DictCategories() {
     setModalVisible(true);
   };
 
-  /**
-   * 打开编辑分类弹窗，并回填当前节点数据
-   * @param {Object} node - 待编辑节点数据
-   */
   const handleEdit = (node) => {
     setModalType('edit');
     setCurrentNode(node);
     form.setFieldsValue({
       name: node.name,
-      sort_order: node.sort_order
+      sort_order: node.sort_order,
     });
     setModalVisible(true);
   };
 
-  /**
-   * 删除指定分类
-   * 如果分类被引用（409 状态码），提示无法删除
-   * @param {number} id - 分类 ID
-   */
   const handleDelete = async (id) => {
     try {
       const res = await fetch(`/api/dict-categories/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
 
       if (res.ok) {
@@ -286,41 +189,34 @@ export default function DictCategories() {
     }
   };
 
-  /**
-   * 提交新增/编辑表单
-   * 根据 modalType 决定调用新增还是编辑 API
-   */
   const handleSubmit = async (values) => {
     try {
       let res;
 
       if (modalType === 'edit') {
-        /* 编辑已有分类 */
         res = await fetch(`/api/dict-categories/${currentNode.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: values.name,
-            sort_order: values.sort_order
-          })
+            sort_order: values.sort_order,
+          }),
         });
       } else {
-        /* 新增一级分类或子分类 */
         res = await fetch('/api/dict-categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: values.name,
             parent_id: modalType === 'addChild' ? currentNode.id : null,
-            sort_order: values.sort_order
-          })
+            sort_order: values.sort_order,
+          }),
         });
       }
 
       if (res.ok) {
         message.success(
-          modalType === 'edit' ? '修改成功' :
-          modalType === 'addChild' ? '添加子分类成功' : '添加成功'
+          modalType === 'edit' ? '修改成功' : modalType === 'addChild' ? '添加子分类成功' : '添加成功',
         );
         setModalVisible(false);
         form.resetFields();
@@ -335,9 +231,6 @@ export default function DictCategories() {
     }
   };
 
-  /**
-   * 根据弹窗类型返回对应的标题文字
-   */
   const getModalTitle = () => {
     switch (modalType) {
       case 'edit':
@@ -349,9 +242,6 @@ export default function DictCategories() {
     }
   };
 
-  /* ========== 交易分类 CRUD 操作 ========== */
-
-  /** 打开新增交易分类弹窗 */
   const handleAddTxType = () => {
     setTxTypeModalMode('add');
     setEditingTxType(null);
@@ -359,10 +249,6 @@ export default function DictCategories() {
     setTxTypeModalVisible(true);
   };
 
-  /**
-   * 打开编辑交易分类弹窗
-   * @param {Object} item - 待编辑的交易分类
-   */
   const handleEditTxType = (item) => {
     setTxTypeModalMode('edit');
     setEditingTxType(item);
@@ -370,10 +256,6 @@ export default function DictCategories() {
     setTxTypeModalVisible(true);
   };
 
-  /**
-   * 删除交易分类
-   * @param {number} id - 交易分类 ID
-   */
   const handleDeleteTxType = async (id) => {
     try {
       const res = await fetch(`/api/transaction-types/${id}`, { method: 'DELETE' });
@@ -393,9 +275,6 @@ export default function DictCategories() {
     }
   };
 
-  /**
-   * 提交交易分类新增/编辑表单
-   */
   const handleTxTypeSubmit = async (values) => {
     try {
       let res;
@@ -428,27 +307,96 @@ export default function DictCategories() {
     }
   };
 
-  /**
-   * 渲染交易分类列表项
-   * @param {Object} item - 交易分类数据
-   */
+  const renderTreeNode = (node) => {
+    const isRoot = !node.parent_id;
+    const nodeKey = String(node.id);
+
+    return (
+      <div
+        style={{
+          ...rowBaseStyle,
+          background: hoveredNodeKey === nodeKey ? colors.bg.hover : 'transparent',
+          borderColor: hoveredNodeKey === nodeKey ? 'rgba(79, 110, 247, 0.2)' : 'transparent',
+        }}
+        onMouseEnter={() => setHoveredNodeKey(nodeKey)}
+        onMouseLeave={() => setHoveredNodeKey(null)}
+      >
+        <Space size={spacing.sm} align="center">
+          <Tag
+            color={isRoot ? 'blue' : 'default'}
+            style={{ borderRadius: 999, marginInlineEnd: 0 }}
+          >
+            {isRoot ? '一级' : '二级'}
+          </Tag>
+          <span style={{ ...typography.body, color: colors.text.primary }}>{node.name}</span>
+        </Space>
+
+        <Space size={spacing.xs} style={hoveredNodeKey === nodeKey ? actionGroupVisibleStyle : actionGroupStyle}>
+          {isRoot && (
+            <Tooltip title="添加子分类">
+              <Button
+                type="text"
+                size="small"
+                icon={<PlusOutlined style={{ color: colors.primary }} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddChild(node);
+                }}
+              />
+            </Tooltip>
+          )}
+
+          <Tooltip title="编辑">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined style={{ color: colors.primary }} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(node);
+              }}
+            />
+          </Tooltip>
+
+          <Popconfirm
+            title="确认删除"
+            description={`确定要删除分类 "${node.name}" 吗？`}
+            onConfirm={(e) => {
+              e.stopPropagation();
+              handleDelete(node.id);
+            }}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Tooltip title="删除">
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      </div>
+    );
+  };
+
   const renderTxTypeItem = (item) => (
     <div
       key={item.id}
+      className="dict-tx-item"
       style={{
-        ...treeNodeRowStyle,
+        ...rowBaseStyle,
         background: hoveredTxTypeId === item.id ? colors.bg.hover : 'transparent',
+        borderColor: hoveredTxTypeId === item.id ? 'rgba(79, 110, 247, 0.2)' : 'transparent',
       }}
       onMouseEnter={() => setHoveredTxTypeId(item.id)}
       onMouseLeave={() => setHoveredTxTypeId(null)}
     >
-      <span style={{ ...typography.body, color: colors.text.primary }}>
-        {item.name}
-      </span>
-      <Space
-        size={spacing.xs}
-        style={hoveredTxTypeId === item.id ? actionGroupVisibleStyle : actionGroupStyle}
-      >
+      <span style={{ ...typography.body, color: colors.text.primary, fontWeight: 500 }}>{item.name}</span>
+      <Space size={spacing.xs} style={hoveredTxTypeId === item.id ? actionGroupVisibleStyle : actionGroupStyle}>
         <Tooltip title="编辑">
           <Button
             type="text"
@@ -472,123 +420,118 @@ export default function DictCategories() {
     </div>
   );
 
-  /** 按类型筛选交易分类 */
-  const incomeTypes = transactionTypes.filter(t => t.type === 'income');
-  const expenseTypes = transactionTypes.filter(t => t.type === 'expense');
+  const incomeTypes = transactionTypes.filter((t) => t.type === 'income');
+  const expenseTypes = transactionTypes.filter((t) => t.type === 'expense');
 
   return (
     <PageContainer
-      title="分类字典管理"
+      title="字典管理中心"
       extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddRoot}
-        >
-          新增一级分类
-        </Button>
+        <Space>
+          <Button icon={<PlusOutlined />} onClick={handleAddTxType}>
+            新增交易分类
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAddRoot}>
+            新增一级分类
+          </Button>
+        </Space>
       }
       loading={loading}
     >
-      {/* 分类树卡片容器 */}
-      <Card
-        style={{
-          borderRadius: borderRadius.md,
-          boxShadow: shadows.card,
-          padding: spacing.lg,
-        }}
-        styles={{
-          body: { padding: spacing.lg },
-        }}
-      >
-        <Tree
-          treeData={treeData}
-          defaultExpandAll
-          showLine={{ showLeafIcon: false }}
-          showIcon={false}
-          style={{
-            /* 自定义树连线颜色为浅灰 */
-            '--ant-tree-line-color': colors.border.base,
-          }}
-        />
-      </Card>
+      <div className="dict-hero card-fade-in" style={{ marginBottom: spacing.xl }}>
+        <div>
+          <div className="dict-hero-title">资产与交易分类配置台</div>
+          <div className="dict-hero-subtitle">统一维护分类口径，确保录入、统计与报表在多用户下保持一致。</div>
+        </div>
+        <div className="dict-hero-stats">
+          <div className="dict-stat-chip">
+            <ApartmentOutlined />
+            <span>一级 {categoryStats.rootCount}</span>
+          </div>
+          <div className="dict-stat-chip">
+            <NodeIndexOutlined />
+            <span>二级 {categoryStats.subCount}</span>
+          </div>
+          <div className="dict-stat-chip">
+            <TagsOutlined />
+            <span>交易 {categoryStats.txCount}</span>
+          </div>
+        </div>
+      </div>
 
-      {/* 交易分类管理卡片 */}
-      <Card
-        title="交易分类管理"
-        loading={txTypeLoading}
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddTxType}
+      <Row gutter={[spacing.lg, spacing.lg]}>
+        <Col xs={24} lg={14}>
+          <Card
+            className="dict-panel-card"
+            title={<span style={{ ...typography.sectionTitle }}>资产分类树</span>}
+            extra={
+              <Button type="default" size="small" icon={<PlusOutlined />} onClick={handleAddRoot}>
+                一级分类
+              </Button>
+            }
+            style={{ borderRadius: borderRadius.md, boxShadow: shadows.card }}
+            styles={{ body: { padding: spacing.lg } }}
           >
-            新增分类
-          </Button>
-        }
-        style={{
-          borderRadius: borderRadius.md,
-          boxShadow: shadows.card,
-          marginTop: spacing.xl,
-        }}
-        styles={{
-          body: { padding: spacing.lg },
-        }}
-      >
-        <Tabs
-          defaultActiveKey="income"
-          items={[
-            {
-              key: 'income',
-              label: '收入类',
-              children: incomeTypes.length > 0
-                ? incomeTypes.map(renderTxTypeItem)
-                : <div style={{ ...typography.caption, color: colors.text.disabled, textAlign: 'center', padding: spacing.xl }}>暂无收入类分类</div>,
-            },
-            {
-              key: 'expense',
-              label: '支出类',
-              children: expenseTypes.length > 0
-                ? expenseTypes.map(renderTxTypeItem)
-                : <div style={{ ...typography.caption, color: colors.text.disabled, textAlign: 'center', padding: spacing.xl }}>暂无支出类分类</div>,
-            },
-          ]}
-        />
-      </Card>
+            <Tree
+              treeData={treeData}
+              titleRender={renderTreeNode}
+              defaultExpandAll
+              showLine={{ showLeafIcon: false }}
+              showIcon={false}
+              style={{ '--ant-tree-line-color': colors.border.base }}
+            />
+          </Card>
+        </Col>
 
-      {/* 新增/编辑分类弹窗 */}
+        <Col xs={24} lg={10}>
+          <Card
+            className="dict-panel-card"
+            title={<span style={{ ...typography.sectionTitle }}>交易分类字典</span>}
+            loading={txTypeLoading}
+            extra={
+              <Button type="default" size="small" icon={<PlusOutlined />} onClick={handleAddTxType}>
+                新增
+              </Button>
+            }
+            style={{ borderRadius: borderRadius.md, boxShadow: shadows.card }}
+            styles={{ body: { padding: spacing.lg } }}
+          >
+            <Tabs
+              defaultActiveKey="income"
+              items={[
+                {
+                  key: 'income',
+                  label: '收入类',
+                  children: incomeTypes.length > 0
+                    ? incomeTypes.map(renderTxTypeItem)
+                    : <div className="dict-empty-tip">暂无收入类分类</div>,
+                },
+                {
+                  key: 'expense',
+                  label: '支出类',
+                  children: expenseTypes.length > 0
+                    ? expenseTypes.map(renderTxTypeItem)
+                    : <div className="dict-empty-tip">暂无支出类分类</div>,
+                },
+              ]}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <Modal
         title={getModalTitle()}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
-        styles={{
-          body: { padding: `${spacing.xl}px` },
-        }}
+        styles={{ body: { padding: `${spacing.xl}px` } }}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          style={{ marginTop: spacing.lg }}
-        >
-          {/* 分类名称 */}
-          <Form.Item
-            name="name"
-            label="分类名称"
-            rules={[{ required: true, message: '请输入分类名称' }]}
-          >
-            <Input
-              placeholder="请输入分类名称"
-              style={{ borderRadius: borderRadius.sm }}
-            />
+        <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ marginTop: spacing.lg }}>
+          <Form.Item name="name" label="分类名称" rules={[{ required: true, message: '请输入分类名称' }]}>
+            <Input placeholder="请输入分类名称" style={{ borderRadius: borderRadius.sm }} />
           </Form.Item>
 
-          {/* 排序序号 */}
-          <Form.Item
-            name="sort_order"
-            label="排序"
-          >
+          <Form.Item name="sort_order" label="排序">
             <InputNumber
               style={{ width: '100%', borderRadius: borderRadius.sm }}
               placeholder="可选，数字越小排序越靠前"
@@ -596,54 +539,29 @@ export default function DictCategories() {
             />
           </Form.Item>
 
-          {/* 底部操作按钮 - 右对齐 */}
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setModalVisible(false)}>
-                取消
-              </Button>
-              <Button type="primary" htmlType="submit">
-                确认
-              </Button>
+              <Button onClick={() => setModalVisible(false)}>取消</Button>
+              <Button type="primary" htmlType="submit">确认</Button>
             </Space>
           </Form.Item>
         </Form>
       </Modal>
-      {/* 新增/编辑交易分类弹窗 */}
+
       <Modal
         title={txTypeModalMode === 'edit' ? '编辑交易分类' : '新增交易分类'}
         open={txTypeModalVisible}
         onCancel={() => setTxTypeModalVisible(false)}
         footer={null}
-        styles={{
-          body: { padding: `${spacing.xl}px` },
-        }}
+        styles={{ body: { padding: `${spacing.xl}px` } }}
       >
-        <Form
-          form={txTypeForm}
-          layout="vertical"
-          onFinish={handleTxTypeSubmit}
-          style={{ marginTop: spacing.lg }}
-        >
-          {/* 分类名称 */}
-          <Form.Item
-            name="name"
-            label="分类名称"
-            rules={[{ required: true, message: '请输入分类名称' }]}
-          >
-            <Input
-              placeholder="请输入分类名称"
-              style={{ borderRadius: borderRadius.sm }}
-            />
+        <Form form={txTypeForm} layout="vertical" onFinish={handleTxTypeSubmit} style={{ marginTop: spacing.lg }}>
+          <Form.Item name="name" label="分类名称" rules={[{ required: true, message: '请输入分类名称' }]}>
+            <Input placeholder="请输入分类名称" style={{ borderRadius: borderRadius.sm }} />
           </Form.Item>
 
-          {/* 类型选择 - 仅新增时显示 */}
           {txTypeModalMode === 'add' && (
-            <Form.Item
-              name="type"
-              label="类型"
-              rules={[{ required: true, message: '请选择分类类型' }]}
-            >
+            <Form.Item name="type" label="类型" rules={[{ required: true, message: '请选择分类类型' }]}>
               <Select
                 placeholder="请选择分类类型"
                 options={[
@@ -654,15 +572,10 @@ export default function DictCategories() {
             </Form.Item>
           )}
 
-          {/* 底部操作按钮 - 右对齐 */}
           <Form.Item style={{ marginBottom: 0 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setTxTypeModalVisible(false)}>
-                取消
-              </Button>
-              <Button type="primary" htmlType="submit">
-                确认
-              </Button>
+              <Button onClick={() => setTxTypeModalVisible(false)}>取消</Button>
+              <Button type="primary" htmlType="submit">确认</Button>
             </Space>
           </Form.Item>
         </Form>

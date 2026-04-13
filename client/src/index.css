@@ -62,9 +62,9 @@ nav a {
 }
 
 main {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 16px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .page-fade-in {
@@ -165,6 +165,152 @@ main {
 
 .ant-menu-dark .ant-menu-item-selected {
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.user-switcher-panel {
+    margin: 10px 12px 8px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(6px);
+}
+
+.user-switcher-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.user-switcher-title {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.user-switcher-amount {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.user-switcher-select .ant-select-selector {
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    background: rgba(8, 18, 46, 0.58) !important;
+}
+
+.user-switcher-select .ant-select-selection-item {
+    color: rgba(255, 255, 255, 0.96) !important;
+    font-weight: 600;
+}
+
+.user-switcher-select.ant-select-focused .ant-select-selector,
+.user-switcher-select.ant-select-open .ant-select-selector {
+    border-color: rgba(122, 151, 255, 0.88) !important;
+    box-shadow: 0 0 0 2px rgba(79, 110, 247, 0.2) !important;
+}
+
+.user-switcher-option {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.user-switcher-name {
+    font-weight: 600;
+}
+
+.user-switcher-id {
+    color: rgba(15, 23, 42, 0.6);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.dict-hero {
+    border-radius: 14px;
+    border: 1px solid rgba(79, 110, 247, 0.15);
+    background:
+        radial-gradient(500px 200px at 100% 0%, rgba(79, 110, 247, 0.15), transparent 60%),
+        linear-gradient(150deg, #ffffff 0%, #f5f8ff 100%);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    padding: 18px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.dict-hero-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: rgba(15, 23, 42, 0.9);
+}
+
+.dict-hero-subtitle {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(15, 23, 42, 0.58);
+}
+
+.dict-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dict-stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(79, 110, 247, 0.2);
+    background: rgba(79, 110, 247, 0.08);
+    color: rgba(29, 45, 135, 0.94);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dict-panel-card {
+    overflow: hidden;
+}
+
+.dict-panel-card .ant-card-head {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    background: linear-gradient(180deg, rgba(79, 110, 247, 0.04), rgba(255, 255, 255, 0));
+}
+
+.dict-panel-card .ant-tabs-nav {
+    margin-bottom: 10px;
+}
+
+.dict-empty-tip {
+    font-size: 13px;
+    color: rgba(15, 23, 42, 0.4);
+    text-align: center;
+    padding: 24px 0;
+}
+
+@media (max-width: 768px) {
+    .dict-hero {
+        padding: 14px;
+    }
+
+    .dict-hero-title {
+        font-size: 18px;
+    }
+
+    .dict-hero-subtitle {
+        font-size: 12px;
+    }
 }
 
 .page-section-gap {
